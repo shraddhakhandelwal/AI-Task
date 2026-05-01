@@ -6,3 +6,9 @@ id = "oXko4P421-eSvDo8iqjic"
 uri = "file://README.md"
 type = "text"
 title = "README.md — Setup & API Documentation"
+
+[[outputs]]
+id = "OnmuB8nHFp0d8xR6x9dqI"
+uri = "file://solar_calculator_python.zip"
+type = "unspecified"
+title = "Solar Load Calculator — Python Project (Notebook + Streamlit)"
