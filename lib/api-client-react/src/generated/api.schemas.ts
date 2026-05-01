@@ -8,3 +8,54 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface BillData {
+  /** Name of the electricity consumer */
+  consumerName: string;
+  /** Consumer account number */
+  consumerNumber: string;
+  /** Month and year of the bill */
+  billingMonth: string;
+  /** Units consumed in kWh */
+  unitsConsumed: number;
+  /** Sanctioned load in kW */
+  sanctionedLoad: number;
+  /** Tariff category or slab */
+  tariffCategory: string;
+  /** Total bill amount in currency */
+  totalBillAmount: number;
+  /** Meter number (if available) */
+  meterNumber?: string;
+  /** Name of the distribution company (e.g. MSEDCL) */
+  distributionCompany?: string;
+}
+
+export interface SolarRecommendation {
+  /** Recommended solar system size in kW */
+  recommendedSystemSizeKw: number;
+  /** Estimated monthly savings in currency */
+  estimatedMonthlySavings: number;
+  /** Estimated annual savings in currency */
+  estimatedAnnualSavings: number;
+  /** Estimated payback period in years */
+  paybackPeriodYears: number;
+  /** Estimated CO2 reduction in kg per year */
+  co2ReductionKgPerYear: number;
+}
+
+export interface BillProcessResult {
+  /** Unique job ID to download the generated Excel file */
+  jobId: string;
+  extractedData: BillData;
+  solarRecommendation: SolarRecommendation;
+}
+
+export interface ErrorResponse {
+  error: string;
+  message: string;
+}
+
+export type ProcessBillBody = {
+  /** PDF or image file of the electricity bill */
+  file: Blob;
+};

@@ -6,4 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./billData";
+export * from "./billProcessResult";
+export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./processBillBody";
+export * from "./solarRecommendation";

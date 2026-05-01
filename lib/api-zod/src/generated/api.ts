@@ -14,3 +14,61 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Accepts a PDF or image electricity bill, extracts data using AI, returns extracted bill data and a job ID to download the Excel file.
+ * @summary Upload and process an electricity bill
+ */
+export const ProcessBillBody = zod.object({
+  file: zod
+    .instanceof(File)
+    .describe("PDF or image file of the electricity bill"),
+});
+
+export const ProcessBillResponse = zod.object({
+  jobId: zod
+    .string()
+    .describe("Unique job ID to download the generated Excel file"),
+  extractedData: zod.object({
+    consumerName: zod.string().describe("Name of the electricity consumer"),
+    consumerNumber: zod.string().describe("Consumer account number"),
+    billingMonth: zod.string().describe("Month and year of the bill"),
+    unitsConsumed: zod.number().describe("Units consumed in kWh"),
+    sanctionedLoad: zod.number().describe("Sanctioned load in kW"),
+    tariffCategory: zod.string().describe("Tariff category or slab"),
+    totalBillAmount: zod.number().describe("Total bill amount in currency"),
+    meterNumber: zod
+      .string()
+      .optional()
+      .describe("Meter number (if available)"),
+    distributionCompany: zod
+      .string()
+      .optional()
+      .describe("Name of the distribution company (e.g. MSEDCL)"),
+  }),
+  solarRecommendation: zod.object({
+    recommendedSystemSizeKw: zod
+      .number()
+      .describe("Recommended solar system size in kW"),
+    estimatedMonthlySavings: zod
+      .number()
+      .describe("Estimated monthly savings in currency"),
+    estimatedAnnualSavings: zod
+      .number()
+      .describe("Estimated annual savings in currency"),
+    paybackPeriodYears: zod
+      .number()
+      .describe("Estimated payback period in years"),
+    co2ReductionKgPerYear: zod
+      .number()
+      .describe("Estimated CO2 reduction in kg per year"),
+  }),
+});
+
+/**
+ * Returns the filled Excel file for a processed bill job.
+ * @summary Download the generated Excel file
+ */
+export const DownloadBillExcelParams = zod.object({
+  jobId: zod.coerce.string(),
+});

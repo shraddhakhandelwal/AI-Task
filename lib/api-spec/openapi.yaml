@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: bill
+    description: Bill processing operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,70 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /bill/process:
+    post:
+      operationId: processBill
+      tags: [bill]
+      summary: Upload and process an electricity bill
+      description: Accepts a PDF or image electricity bill, extracts data using AI, returns extracted bill data and a job ID to download the Excel file.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF or image file of the electricity bill
+              required:
+                - file
+      responses:
+        "200":
+          description: Bill processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillProcessResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /bill/download/{jobId}:
+    get:
+      operationId: downloadBillExcel
+      tags: [bill]
+      summary: Download the generated Excel file
+      description: Returns the filled Excel file for a processed bill job.
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Excel file
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +99,89 @@ components:
           type: string
       required:
         - status
-
+    BillData:
+      type: object
+      properties:
+        consumerName:
+          type: string
+          description: Name of the electricity consumer
+        consumerNumber:
+          type: string
+          description: Consumer account number
+        billingMonth:
+          type: string
+          description: Month and year of the bill
+        unitsConsumed:
+          type: number
+          description: Units consumed in kWh
+        sanctionedLoad:
+          type: number
+          description: Sanctioned load in kW
+        tariffCategory:
+          type: string
+          description: Tariff category or slab
+        totalBillAmount:
+          type: number
+          description: Total bill amount in currency
+        meterNumber:
+          type: string
+          description: Meter number (if available)
+        distributionCompany:
+          type: string
+          description: Name of the distribution company (e.g. MSEDCL)
+      required:
+        - consumerName
+        - consumerNumber
+        - billingMonth
+        - unitsConsumed
+        - sanctionedLoad
+        - tariffCategory
+        - totalBillAmount
+    BillProcessResult:
+      type: object
+      properties:
+        jobId:
+          type: string
+          description: Unique job ID to download the generated Excel file
+        extractedData:
+          $ref: "#/components/schemas/BillData"
+        solarRecommendation:
+          $ref: "#/components/schemas/SolarRecommendation"
+      required:
+        - jobId
+        - extractedData
+        - solarRecommendation
+    SolarRecommendation:
+      type: object
+      properties:
+        recommendedSystemSizeKw:
+          type: number
+          description: Recommended solar system size in kW
+        estimatedMonthlySavings:
+          type: number
+          description: Estimated monthly savings in currency
+        estimatedAnnualSavings:
+          type: number
+          description: Estimated annual savings in currency
+        paybackPeriodYears:
+          type: number
+          description: Estimated payback period in years
+        co2ReductionKgPerYear:
+          type: number
+          description: Estimated CO2 reduction in kg per year
+      required:
+        - recommendedSystemSizeKw
+        - estimatedMonthlySavings
+        - estimatedAnnualSavings
+        - paybackPeriodYears
+        - co2ReductionKgPerYear
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message

@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  BillProcessResult,
+  ErrorResponse,
+  HealthStatus,
+  ProcessBillBody,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +100,184 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Accepts a PDF or image electricity bill, extracts data using AI, returns extracted bill data and a job ID to download the Excel file.
+ * @summary Upload and process an electricity bill
+ */
+export const getProcessBillUrl = () => {
+  return `/api/bill/process`;
+};
+
+export const processBill = async (
+  processBillBody: ProcessBillBody,
+  options?: RequestInit,
+): Promise<BillProcessResult> => {
+  const formData = new FormData();
+  formData.append(`file`, processBillBody.file);
+
+  return customFetch<BillProcessResult>(getProcessBillUrl(), {
+    ...options,
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getProcessBillMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processBill>>,
+    TError,
+    { data: BodyType<ProcessBillBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof processBill>>,
+  TError,
+  { data: BodyType<ProcessBillBody> },
+  TContext
+> => {
+  const mutationKey = ["processBill"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof processBill>>,
+    { data: BodyType<ProcessBillBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return processBill(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ProcessBillMutationResult = NonNullable<
+  Awaited<ReturnType<typeof processBill>>
+>;
+export type ProcessBillMutationBody = BodyType<ProcessBillBody>;
+export type ProcessBillMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Upload and process an electricity bill
+ */
+export const useProcessBill = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processBill>>,
+    TError,
+    { data: BodyType<ProcessBillBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof processBill>>,
+  TError,
+  { data: BodyType<ProcessBillBody> },
+  TContext
+> => {
+  return useMutation(getProcessBillMutationOptions(options));
+};
+
+/**
+ * Returns the filled Excel file for a processed bill job.
+ * @summary Download the generated Excel file
+ */
+export const getDownloadBillExcelUrl = (jobId: string) => {
+  return `/api/bill/download/${jobId}`;
+};
+
+export const downloadBillExcel = async (
+  jobId: string,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getDownloadBillExcelUrl(jobId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getDownloadBillExcelQueryKey = (jobId: string) => {
+  return [`/api/bill/download/${jobId}`] as const;
+};
+
+export const getDownloadBillExcelQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadBillExcel>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  jobId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof downloadBillExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDownloadBillExcelQueryKey(jobId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof downloadBillExcel>>
+  > = ({ signal }) => downloadBillExcel(jobId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!jobId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof downloadBillExcel>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type DownloadBillExcelQueryResult = NonNullable<
+  Awaited<ReturnType<typeof downloadBillExcel>>
+>;
+export type DownloadBillExcelQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Download the generated Excel file
+ */
+
+export function useDownloadBillExcel<
+  TData = Awaited<ReturnType<typeof downloadBillExcel>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  jobId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof downloadBillExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getDownloadBillExcelQueryOptions(jobId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

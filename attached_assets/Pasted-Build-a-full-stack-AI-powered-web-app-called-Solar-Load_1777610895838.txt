@@ -1,0 +1,91 @@
+Build a full-stack AI-powered web app called "Solar Load Calculator – Bill to Excel Automation".
+
+PROJECT GOAL:
+Automate electricity bill processing:
+1. User uploads a PDF or image electricity bill
+2. Extract key data using AI/OCR
+3. Fill an Excel template automatically
+4. Return a downloadable Excel file
+
+CONTEXT:
+This tool is for a renewable energy company that calculates solar system size based on electricity bills. The process must reduce manual effort and work reliably.
+
+CORE FEATURES:
+1. File Upload UI (drag & drop or browse)
+2. Accept PDF, JPG, PNG formats
+3. Extract bill data using OCR + AI parsing
+4. Map extracted values to Excel template
+5. Generate downloadable Excel file
+
+TECH STACK (use this EXACT stack):
+- Frontend: HTML, TailwindCSS, Vanilla JS (or React if preferred)
+- Backend: Python (Flask or FastAPI)
+- OCR: Tesseract OR EasyOCR
+- AI Parsing: OpenAI API (or structured regex fallback)
+- Excel Handling: openpyxl or pandas
+- File handling: Python
+
+DATA TO EXTRACT (IMPORTANT):
+From electricity bill extract:
+- Consumer Name
+- Consumer Number
+- Billing Month
+- Units Consumed (kWh)
+- Sanctioned Load (kW)
+- Tariff Category
+- Total Bill Amount
+- Meter Number (if available)
+
+PROCESS FLOW:
+1. Upload file
+2. Convert PDF → image (if needed)
+3. Run OCR → get raw text
+4. Use AI to extract structured JSON like:
+   {
+     "name": "",
+     "consumer_no": "",
+     "units": "",
+     "load": "",
+     "tariff": "",
+     "bill_amount": ""
+   }
+5. Load Excel template
+6. Fill ONLY input cells (DO NOT overwrite formulas)
+7. Save new Excel file
+8. Return file to user
+
+EXCEL REQUIREMENTS:
+- Assume template already exists
+- Map extracted fields to specific cells (make config-based mapping)
+- Do not modify formulas
+- Preserve formatting
+
+UI REQUIREMENTS:
+- Clean simple UI
+- Upload button
+- Loading spinner
+- Success message
+- Download button for Excel
+
+BONUS FEATURES (if possible):
+- Show extracted data preview before generating Excel
+- Handle errors gracefully
+- Support multiple bill formats
+
+PROJECT STRUCTURE:
+- /frontend
+- /backend
+- /uploads
+- /outputs
+- main app file
+- requirements.txt
+
+DELIVERABLE:
+- Fully working app
+- Instructions to run locally
+- Clean, modular code
+
+IMPORTANT:
+- Focus on working prototype (80% accuracy is fine)
+- Do NOT overcomplicate
+- Ensure end-to-end flow works: upload → process → download
