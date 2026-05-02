@@ -1,5 +1,5 @@
 # Notebook (Google Colab) — free, no payment required
-google-generativeai>=0.7.0
+google-genai
 
 # Streamlit app (Replit) — uses Replit AI Integrations
 openai>=1.0.0
