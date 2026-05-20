@@ -1,0 +1,15 @@
+{
+  "buildCommand": "pnpm --filter @workspace/solar-calculator run build",
+  "outputDirectory": "artifacts/solar-calculator/dist/public",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": null,
+  "build": {
+    "env": {
+      "PORT": "3000",
+      "BASE_PATH": "/"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
+}

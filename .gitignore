@@ -48,6 +48,9 @@ Thumbs.db
 .cache/
 .local/
 
+# Vercel
+.vercel
+
 # Python
 __pycache__/
 *.py[cod]
