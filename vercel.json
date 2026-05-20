@@ -1,6 +1,6 @@
 {
   "buildCommand": "pnpm --filter @workspace/solar-calculator run build",
-  "outputDirectory": "artifacts/solar-calculator/dist/public",
+  "outputDirectory": "artifacts/solar-calculator/dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
   "build": {
